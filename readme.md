@@ -1,6 +1,6 @@
 # Xliff Merge
 
-xliff-merge is a simple command line tool that merges new translation items to existing language file.
+xliff-merge is a simple command line tool that merges new Angular translation items to existing xliff language file.
 
 ## How to install
 

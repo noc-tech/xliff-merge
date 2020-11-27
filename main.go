@@ -18,9 +18,10 @@ import (
 )
 
 var (
-	path            = flag.String("path", "angular/src/locale", "Angular locale path")
-	googleTranslate = flag.Bool("googleTranslate", false, "Use Google Translate to translate new texts")
-	apiKey          = flag.String("apikey", "", "Google Translate API key")
+	path                  = flag.String("path", "angular/src/locale", "Angular locale path")
+	googleTranslate       = flag.Bool("googleTranslate", false, "Use Google Translate to translate new texts")
+	apiKey                = flag.String("apikey", "", "Google Translate API key")
+	googleTranslateClient *translate.Client
 )
 
 func main() {
@@ -28,6 +29,15 @@ func main() {
 
 	if *googleTranslate && *apiKey == "" {
 		log.Fatal("You must provide Google Translate API key")
+	}
+
+	if *googleTranslate {
+		// Creates a google translate client.
+		var err error
+		googleTranslateClient, err = translate.NewClient(context.Background(), option.WithAPIKey(*apiKey))
+		if err != nil {
+			log.Fatalf("Failed to create client: %v", err)
+		}
 	}
 
 	var locales []string
@@ -51,12 +61,6 @@ func main() {
 	}
 	english.TrgLang = "en"
 
-	ctx := context.Background()
-	// Creates a google translate client.
-	client, err := translate.NewClient(ctx, option.WithAPIKey(*apiKey))
-	if err != nil {
-		log.Fatalf("Failed to create client: %v", err)
-	}
 	for _, lang := range locales {
 		m := make(map[string]*Unit)
 		trg, err := readXML(lang)
@@ -92,7 +96,7 @@ func main() {
 			} else {
 				if *googleTranslate && !strings.Contains(unit.Segment.Source.Text, "{") {
 					// Translates the text into target language.
-					if translations, err := client.Translate(ctx, []string{unit.Segment.Source.Text}, targetLang, nil); err == nil {
+					if translations, err := googleTranslateClient.Translate(context.Background(), []string{unit.Segment.Source.Text}, targetLang, nil); err == nil {
 						target = translations[0].Text
 						state = &State{Text: "not-checked"}
 					}
