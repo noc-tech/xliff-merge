@@ -96,9 +96,12 @@ func main() {
 			} else {
 				if *googleTranslate && !strings.Contains(unit.Segment.Source.Text, "{") {
 					// Translates the text into target language.
-					if translations, err := googleTranslateClient.Translate(context.Background(), []string{unit.Segment.Source.Text}, targetLang, nil); err == nil {
+					translations, err := googleTranslateClient.Translate(context.Background(), []string{unit.Segment.Source.Text}, targetLang, nil)
+					if err == nil {
 						target = translations[0].Text
 						state = &State{Text: "not-checked"}
+					} else {
+						fmt.Println(err)
 					}
 				}
 			}
